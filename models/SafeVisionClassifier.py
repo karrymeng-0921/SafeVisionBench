@@ -27,7 +27,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 task_type_dict = {
     "object": "multiclass",
     "style": "multiclass",
-    "nudenet": "multiclass",
+    "nsfw": "multiclass",
 }
 
 # =======================
@@ -189,7 +189,7 @@ def compute_attack_success_rate(model, pixel_values, labels, task):
         outputs = model(pixel_values, task_name=task, labels=labels, detach_clip=True)
         logits = outputs['logits']
 
-    if task == 'nudenet':
+    if task == 'nsfw':
         preds = torch.argmax(logits, dim=1)
         success = (preds != labels).float().sum().item()
     else:
@@ -224,7 +224,7 @@ def evaluate(model, loader, task, adv=False, eps=8/255, alpha=2/255, iters=3):
 
         logits = outputs["logits"]
 
-        if task == "nudenet":
+        if task == "nsfw":
             preds = torch.argmax(logits, dim=1)
         else:
             if task_type == "multiclass":
@@ -289,9 +289,9 @@ def main():
         ("style/train", "style_train"),
         ("style/val/Real", "style_val_real"),
         ("style/val/SD-Gen", "style_val_sdgen"),
-        ("nudenet/train", "nudenet_train"),
-        ("nudenet/val/Real", "nudenet_val_real"),
-        ("nudenet/val/SD-Gen", "nudenet_val_sdgen"),
+        ("nsfw/train", "nsfw_train"),
+        ("nsfw/val/Real", "nsfw_val_real"),
+        ("nsfw/val/SD-Gen", "nsfw_val_sdgen"),
     ]
    
     for src, dst in datasets_to_save:
@@ -310,11 +310,11 @@ def main():
             input_dim=512, hidden_dim=512, num_classes=20,
             dropout_rate=0.3, gram_reduce_dim=512, cluster_factor=3
         ),
-        "nudenet": MLPHead(input_dim=512, hidden_dim=256, num_classes=7, dropout=0.3),
+        "nsfw": MLPHead(input_dim=512, hidden_dim=256, num_classes=7, dropout=0.3),
     }
     model = MultiHeadCLIPClassifier(clip_model, head_dict, task_type_dict).to(device)
 
-    for task in ["object", "style", "nudenet"]:
+    for task in ["object", "style", "nsfw"]:
         log_file_path = os.path.join(args.results_dir, f"{task}_epoch_logs.json")
         with open(log_file_path, "w") as f:
             json.dump([], f)

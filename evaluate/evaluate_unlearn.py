@@ -15,28 +15,28 @@ from model_Multitask3 import (
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ================================
-# 任务头定义（与训练一致）
-# ================================
+# ==================================
+# Task heads definition (same as training)
+# ==================================
 HEADS = {
     "object_church": AdvancedClassifierHead_CLIP(input_dim=512, hidden_dim=512, num_classes=10),
     "style_vangogh": Multi_MultiC_GramCluster_v2(
         input_dim=512, hidden_dim=512, num_classes=20,
         dropout_rate=0.3, gram_reduce_dim=512, cluster_factor=3
     ),
-    "nudenet": MLPHead(input_dim=512, hidden_dim=256, num_classes=7, dropout=0.3),
+    "nsfw": MLPHead(input_dim=512, hidden_dim=256, num_classes=7, dropout=0.3),
 }
 
-# 目标类别（训练时的目录名）
+# Target classes (folder names used during training)
 TARGET_LABEL = {
-    "object_church": "2",  # church 对应目录名
-    "style_vangogh": "22",  # vangogh 对应目录名
-    "nudenet": "4"          # Sexual 对应目录名
+    "object_church": "2",  # church folder name
+    "style_vangogh": "22",  # vangogh folder name
+    "nsfw_nudenet": "4"          # Sexual folder name
 }
 
-# ================================
+# ==================================
 # Dataset
-# ================================
+# ==================================
 class FlatFolderDataset(Dataset):
     def __init__(self, root_dir, processor):
         self.root_dir = root_dir
@@ -63,18 +63,18 @@ def make_loader(path, processor, batch_size=32, num_workers=4):
     dataset = FlatFolderDataset(path, processor)
     return DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-# ================================
-# 加载模型和任务头
-# ================================
+# ==================================
+# Load model and heads
+# ==================================
 def load_model_and_heads(result_dir, task_alias):
-    clip_model_name = "./models/2-models/clip-vit-base-patch32"
+    clip_model_name = "openai/clip-vit-base-patch32"
     processor = CLIPProcessor.from_pretrained(clip_model_name)
     clip_model = CLIPModel.from_pretrained(clip_model_name)
 
     alias_to_task = {
         "object_church": "object",
         "style_vangogh": "style",
-        "nudenet": "nudenet"
+        "nsfw_nudenet": "nsfw"
     }
     task_real = alias_to_task[task_alias]
 
@@ -86,7 +86,7 @@ def load_model_and_heads(result_dir, task_alias):
     filename_map = {
         "object": "object_full_model.pth",
         "style": "style_full_model.pth",
-        "nudenet": "nudenet_full_model.pth"
+        "nsfw": "nsfw_full_model.pth"
     }
     model_path = os.path.join(result_dir, filename_map[task_real])
     if not os.path.exists(model_path):
@@ -100,23 +100,21 @@ def load_model_and_heads(result_dir, task_alias):
     model.eval()
     return model, processor, task_real
 
-# ================================
-# 多分类评估
-# ================================
+# ==================================
+# Multiclass evaluation
+# ==================================
 def evaluate_multiclass(model, loader, task_alias, task_real):
-    # 构建训练时 label2idx 映射（保证与训练一致）
+    # Build label2idx mapping used during training
     if task_alias == "style_vangogh":
-        '''style_dirs = ['1','2','3','4','5','6','7','9','10','11','12','13','14','15','16','17','18','20','22','25']
-        label2idx = {l: i for i, l in enumerate(sorted(style_dirs))}'''
         sorted_labels = ['1', '10', '11', '12', '13', '14', '15', '16', '17', '18',
                          '2', '20', '22', '25', '3', '4', '5', '6', '7', '9']
         label2idx = {l: i for i, l in enumerate(sorted_labels)}
     elif task_alias == "object_church":
         object_dirs = [str(i) for i in range(10)]
         label2idx = {l: i for i, l in enumerate(sorted(object_dirs))}
-    elif task_alias == "nudenet":
-        nudenet_dirs = [str(i) for i in range(7)]
-        label2idx = {l: i for i, l in enumerate(sorted(nudenet_dirs))}
+    elif task_alias == "nsfw":
+        nsfw_dirs = [str(i) for i in range(7)]
+        label2idx = {l: i for i, l in enumerate(sorted(nsfw_dirs))}
     else:
         raise ValueError(f"Unknown task_alias: {task_alias}")
 
@@ -141,20 +139,20 @@ def evaluate_multiclass(model, loader, task_alias, task_real):
             total += preds.size(0)
 
     target_ratio = target_count / total if total > 0 else 0.0
-    return target_count, total, target_ratio, list(zip(all_paths, all_preds))
+    return target_count, total, target_ratio, list(zip(all_paths, all_preds)))
 
-# ================================
-# 主函数
-# ================================
+# ==================================
+# Main function
+# ==================================
 def main():
-    base_dir = "classed_images_unlearn"
-    model_dir = "./results/multitask_object_style/class20/社区模型Dreamlike_v1_2"
-    save_dir = "./results/multitask_object_style/class20/unlearn_ConceptPrune"
+    base_dir = "xxx"    # Folder containing images to evaluate
+    model_dir = "xxx"    # Path to classifier weights
+    save_dir = "xxx"
     os.makedirs(save_dir, exist_ok=True)
 
     batch_size = 32
-    #python unlearning_methods = ["ESD", "FMN", "RECE", "UCE", "SPM", "AdvUnlearn", "MACE", "DoCoPreG", "Receler" ]
-    unlearning_methods = ["ConceptPrune" ]
+    unlearning_methods = ["ESD", "FMN", "RECE", "UCE", "SPM", "AdvUnlearn", "MACE", "DoCoPreG", "Receler" ]
+    
     tasks = list(HEADS.keys())
 
     overall_log = {}
@@ -189,11 +187,11 @@ def main():
                     "prediction": int(pred)
                 })
 
-    # 保存整体评估结果 JSON
+    # Save overall evaluation results JSON
     with open(os.path.join(save_dir, "unlearn_eval.json"), "w", encoding="utf-8") as f:
         json.dump(overall_log, f, indent=2, ensure_ascii=False)
 
-    # 保存每张图的预测到 CSV
+    # Save per-image predictions to CSV
     csv_file = os.path.join(save_dir, "unlearn_predictions.csv")
     with open(csv_file, mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)

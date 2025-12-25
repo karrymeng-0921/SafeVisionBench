@@ -146,7 +146,7 @@ def evaluate_multiclass(model, loader, task_alias, task_real):
 # ==================================
 def main():
     base_dir = "xxx"    # Folder containing images to evaluate
-    model_dir = "xxx"    # Path to classifier weights
+    model_dir = "Weights"    # Path to classifier weights
     save_dir = "xxx"
     os.makedirs(save_dir, exist_ok=True)
 

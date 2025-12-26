@@ -15,9 +15,7 @@ from model_Multitask3 import (
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ==================================
 # Task heads definition (same as training)
-# ==================================
 HEADS = {
     "object_church": AdvancedClassifierHead_CLIP(input_dim=512, hidden_dim=512, num_classes=10),
     "style_vangogh": Multi_MultiC_GramCluster_v2(
@@ -34,9 +32,7 @@ TARGET_LABEL = {
     "nsfw_nudenet": "4"          # Sexual folder name
 }
 
-# ==================================
 # Dataset
-# ==================================
 class FlatFolderDataset(Dataset):
     def __init__(self, root_dir, processor):
         self.root_dir = root_dir
@@ -63,9 +59,7 @@ def make_loader(path, processor, batch_size=32, num_workers=4):
     dataset = FlatFolderDataset(path, processor)
     return DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-# ==================================
 # Load model and heads
-# ==================================
 def load_model_and_heads(result_dir, task_alias):
     clip_model_name = "openai/clip-vit-base-patch32"
     processor = CLIPProcessor.from_pretrained(clip_model_name)
@@ -100,9 +94,7 @@ def load_model_and_heads(result_dir, task_alias):
     model.eval()
     return model, processor, task_real
 
-# ==================================
 # Multiclass evaluation
-# ==================================
 def evaluate_multiclass(model, loader, task_alias, task_real):
     # Build label2idx mapping used during training
     if task_alias == "style_vangogh":
@@ -141,9 +133,7 @@ def evaluate_multiclass(model, loader, task_alias, task_real):
     target_ratio = target_count / total if total > 0 else 0.0
     return target_count, total, target_ratio, list(zip(all_paths, all_preds)))
 
-# ==================================
 # Main function
-# ==================================
 def main():
     base_dir = "xxx"    # Folder containing images to evaluate
     model_dir = "Weights"    # Path to classifier weights

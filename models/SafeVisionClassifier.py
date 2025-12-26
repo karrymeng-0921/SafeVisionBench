@@ -30,9 +30,7 @@ task_type_dict = {
     "nsfw": "multiclass",
 }
 
-# =======================
 # Auto-estimate batch_size_save
-# =======================
 def estimate_batch_size(dataset_path, target_mem_ratio=0.8, img_size=(224, 224), channels=3, dtype_bytes=4):
     mem = psutil.virtual_memory()
     avail_bytes = mem.available
@@ -43,9 +41,7 @@ def estimate_batch_size(dataset_path, target_mem_ratio=0.8, img_size=(224, 224),
     print(f"[INFO] Available RAM: {avail_bytes/1e9:.2f} GB, estimated batch_size_save: {batch_size}")
     return batch_size
 
-# =======================
 # Save dataset in batches
-# =======================
 def save_dataset_to_pth(dataset_path, save_path, batch_size=512, img_size=(224, 224)):
     os.makedirs(save_path, exist_ok=True)
     if any(f.endswith(".pth") for f in os.listdir(save_path)):
@@ -86,9 +82,7 @@ def save_dataset_to_pth(dataset_path, save_path, batch_size=512, img_size=(224, 
             batch_idx += 1
             all_tensors, all_labels, all_domains = [], [], []
 
-# =======================
 # MemoryDataset
-# =======================
 class MemoryDataset(Dataset):
     def __init__(self, pth_dir, augment=False, task_name=None):
         self.pth_files = sorted([os.path.join(pth_dir, f) for f in os.listdir(pth_dir) if f.endswith(".pth")])
@@ -152,18 +146,14 @@ def make_loader_from_pth(pth_dir, batch_size, augment=False, task_name=None):
     dataset = MemoryDataset(pth_dir, augment=augment, task_name=task_name)
     return DataLoader(dataset, batch_size=batch_size, shuffle=augment, num_workers=0)
 
-# =======================
 # load_clip
-# =======================
 def load_clip():
     clip_model_name = "openai/clip-vit-base-patch32"
     processor = CLIPProcessor.from_pretrained(clip_model_name)
     clip_model = CLIPModel.from_pretrained(clip_model_name)
     return clip_model, processor
 
-# =======================
 # PGD adversarial attack
-# =======================
 def pgd_attack(model, images, labels, task, eps=8/255, alpha=2/255, iters=3):
     model.eval()
     images = images.clone().detach().to(device)
@@ -181,9 +171,7 @@ def pgd_attack(model, images, labels, task, eps=8/255, alpha=2/255, iters=3):
     adv_images = (images + delta).clamp(-1, 1)
     return adv_images
 
-# =======================
 # Compute attack success rate
-# =======================
 def compute_attack_success_rate(model, pixel_values, labels, task):
     with torch.no_grad():
         outputs = model(pixel_values, task_name=task, labels=labels, detach_clip=True)
@@ -201,9 +189,7 @@ def compute_attack_success_rate(model, pixel_values, labels, task):
             success = (preds != labels).float().sum().item()
     return success / labels.size(0)
 
-# =======================
 # Evaluation
-# =======================
 def evaluate(model, loader, task, adv=False, eps=8/255, alpha=2/255, iters=3):
     model.eval()
     total_loss, total_correct, total_samples = 0, 0, 0
@@ -241,9 +227,7 @@ def evaluate(model, loader, task, adv=False, eps=8/255, alpha=2/255, iters=3):
     avg_success = total_success / max(1, total_batches) if adv else None
     return avg_loss, avg_acc, avg_success
 
-# =======================
 # Plotting
-# =======================
 def plot_metrics(metrics, save_dir, task):
     plt.figure(figsize=(15, 5))
     for i, metric in enumerate(["loss", "acc", "attack_success"]):
@@ -263,9 +247,7 @@ def plot_metrics(metrics, save_dir, task):
     plt.savefig(os.path.join(save_dir, f"{task}_metrics.png"))
     plt.close()
 
-# =======================
 # Main
-# =======================
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=40)

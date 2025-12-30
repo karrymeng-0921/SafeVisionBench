@@ -186,9 +186,10 @@ def main():
     parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--pretrain-epochs", type=int, default=3)
     parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--base-dir", type=str, default="CLASSIFIED_IMAGES_DIR")  # placeholder
-    parser.add_argument("--sdgen-dir", type=str, default="SDGEN_IMAGES_DIR")      # placeholder
-    parser.add_argument("--results-dir", type=str, default="results/MODEL_NAME")  # generic results folder
+    parser.add_argument("--base-dir", type=str, default="CLASSIFIED_IMAGES_DIR",
+                        help="Root directory containing train/val subdirectories for each task")
+    parser.add_argument("--results-dir", type=str, default="results",
+                        help="Directory to save training results")
     parser.add_argument("--batch-size-save", type=int, default=None)
     parser.add_argument("--adv-ratio", type=float, default=0.5)
     args = parser.parse_args()
@@ -196,7 +197,7 @@ def main():
     fix_seed(42)
     os.makedirs(args.results_dir, exist_ok=True)
 
-    # 1. Save datasets
+    # ---------- Step 1: Save datasets ----------
     datasets_to_save = [
         ("object/train", "object_train"),
         ("object/val/Real", "object_val_real"),
@@ -208,13 +209,14 @@ def main():
         ("nsfw/val/Real", "nsfw_val_real"),
         ("nsfw/val/SD-Gen", "nsfw_val_sdgen"),
     ]
+
     for src, dst in datasets_to_save:
-        dataset_path = os.path.join(args.sdgen_dir if "SD-Gen" in src else args.base_dir, src.split("/")[0])
+        dataset_path = os.path.join(args.base_dir, src)
         save_path = os.path.join(dst)
         batch_size_save = args.batch_size_save or estimate_batch_size(dataset_path)
         save_dataset_to_pth(dataset_path, save_path, batch_size=batch_size_save)
 
-    # 2. Task-wise training
+    # ---------- Step 2: Task-wise training ----------
     for task in args.tasks:
         if task not in ["object", "style", "nsfw"]:
             print(f"[WARNING] Unknown task {task}, skipping...")
@@ -222,12 +224,14 @@ def main():
 
         print(f"\n==== Task: {task} ====")
         clip_model, processor = load_clip()
+
         head_dict = {
             "object": AdvancedClassifierHead_CLIP(input_dim=512, hidden_dim=512, num_classes=10),
             "style": Multi_MultiC_GramCluster_v2(input_dim=512, hidden_dim=512, num_classes=20,
                                                  dropout_rate=0.3, gram_reduce_dim=512, cluster_factor=3),
             "nsfw": MLPHead(input_dim=512, hidden_dim=256, num_classes=7, dropout=0.3),
         }
+
         model = MultiHeadCLIPClassifier(clip_model, {task: head_dict[task]}, {task: task_type_dict[task]}).to(device)
 
         log_file_path = os.path.join(args.results_dir, f"{task}_epoch_logs.json")
@@ -235,13 +239,15 @@ def main():
             json.dump([], f)
 
         # ---------- Phase 1: Full-model fine-tuning ----------
-        print(f"[Phase 1] Full-model fine-tune w/ PGD")
+        print(f"[Phase 1] Full-model fine-tune with PGD")
         for param in model.clip_model.parameters():
             param.requires_grad = True
         optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()),
                                       lr=5e-6, weight_decay=1e-3)
+
         train_loader = make_loader_from_pth(f"{task}_train",
                                             batch_size=args.batch_size, augment=True, task_name=task)
+
         for epoch in range(args.pretrain_epochs):
             model.train()
             for batch in train_loader:
@@ -256,7 +262,7 @@ def main():
                 optimizer.step()
 
         # ---------- Phase 2: Freeze backbone, train head only ----------
-        print(f"[Phase 2] Freeze CLIP, train head only")
+        print(f"[Phase 2] Freeze CLIP backbone, train head only")
         for param in model.clip_model.parameters():
             param.requires_grad = False
         optimizer = torch.optim.AdamW(model.head_dict[task].parameters(), lr=1e-4, weight_decay=1e-3)
@@ -289,21 +295,27 @@ def main():
             metrics["train"]["loss"].append(avg_loss)
             metrics["train"]["acc"].append(avg_acc)
 
-            # validation
+            # ---------- Validation ----------
             for domain in ["Real", "SD-Gen"]:
                 tag = f"val_{domain.lower().replace('-', '')}"
                 val_loader = make_loader_from_pth(f"{task}_val_{domain.lower().replace('-', '')}",
-                                                    batch_size=args.batch_size, augment=False, task_name=task)
+                                                  batch_size=args.batch_size, augment=False, task_name=task)
                 loss, acc = evaluate(model, val_loader, task)
                 metrics[tag]["loss"].append(loss)
                 metrics[tag]["acc"].append(acc)
             scheduler.step(metrics["val_real"]["loss"][-1])
 
-            # log
-            epoch_record = {"task": task, "epoch": epoch + 1,
-                            "train_loss": avg_loss, "train_acc": avg_acc,
-                            "val_real_loss": metrics["val_real"]["loss"][-1], "val_real_acc": metrics["val_real"]["acc"][-1],
-                            "val_sdgen_loss": metrics["val_sdgen"]["loss"][-1], "val_sdgen_acc": metrics["val_sdgen"]["acc"][-1]}
+            # ---------- Logging ----------
+            epoch_record = {
+                "task": task,
+                "epoch": epoch + 1,
+                "train_loss": avg_loss,
+                "train_acc": avg_acc,
+                "val_real_loss": metrics["val_real"]["loss"][-1],
+                "val_real_acc": metrics["val_real"]["acc"][-1],
+                "val_sdgen_loss": metrics["val_sdgen"]["loss"][-1],
+                "val_sdgen_acc": metrics["val_sdgen"]["acc"][-1],
+            }
             with open(log_file_path, "r+") as f:
                 logs = json.load(f)
                 logs.append(epoch_record)
@@ -321,8 +333,7 @@ def main():
         }, full_model_path)
         print(f" Saved full model for {task} -> {full_model_path}")
 
-    print("\n All tasks complete. Each task now has its own isolated full model file.")
-
+    print("\nAll tasks complete. Each task now has its own isolated full model file.")
 
 if __name__ == "__main__":
     main()

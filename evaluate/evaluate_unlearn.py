@@ -135,31 +135,43 @@ def evaluate_multiclass(model, loader, task_alias, task_real):
 
 # Main function
 def main():
-    base_dir = "xxx"    # Folder containing images to evaluate
-    model_dir = "Weights"    # Path to classifier weights
-    save_dir = "xxx"
-    os.makedirs(save_dir, exist_ok=True)
+    parser = argparse.ArgumentParser("Unlearning Evaluation")
+    parser.add_argument("--base-dir", type=str, required=True,
+                        help="Root directory containing images to evaluate")
+    parser.add_argument("--model-dir", type=str, required=True,
+                        help="Directory containing trained classifier weights")
+    parser.add_argument("--save-dir", type=str, required=True,
+                        help="Directory to save evaluation results")
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--tasks", nargs="+", default=list(HEADS.keys()),
+                        help="Tasks to evaluate (e.g. object_church style_vangogh nsfw)")
+    parser.add_argument("--methods", nargs="+", required=True,
+                        help="Unlearning methods to evaluate (e.g. ESD FMN UCE)")
+    args = parser.parse_args()
 
-    batch_size = 32
-    unlearning_methods = ["ESD", "FMN", "RECE", "UCE", "SPM", "AdvUnlearn", "MACE", "DoCoPreG", "Receler" ]
-    
-    tasks = list(HEADS.keys())
+    os.makedirs(args.save_dir, exist_ok=True)
 
     overall_log = {}
     detailed_list = []
 
-    for task in tasks:
-        overall_log[task] = {}
-        model, processor, task_real = load_model_and_heads(model_dir, task)
+    for task in args.tasks:
+        if task not in HEADS:
+            print(f"[!] Unknown task: {task}, skipping.")
+            continue
 
-        for method in unlearning_methods:
-            data_path = os.path.join(base_dir, task, "forget", method)
+        overall_log[task] = {}
+        model, processor, task_real = load_model_and_heads(args.model_dir, task)
+
+        for method in args.methods:
+            data_path = os.path.join(args.base_dir, task, "forget", method)
             if not os.path.exists(data_path):
                 print(f"[!] Path not found: {data_path}, skipping.")
                 continue
 
-            loader = make_loader(data_path, processor, batch_size)
-            target_count, total_count, ratio, preds_with_paths = evaluate_multiclass(model, loader, task, task_real)
+            loader = make_loader(data_path, processor, args.batch_size)
+            target_count, total_count, ratio, preds_with_paths = evaluate_multiclass(
+                model, loader, task, task_real
+            )
 
             overall_log[task][method] = {
                 "target_class_count": int(target_count),
@@ -167,7 +179,8 @@ def main():
                 "target_class_ratio": round(ratio, 4)
             }
 
-            print(f"[{task} - {method}] Target class count: {target_count}/{total_count} ({ratio:.4f})")
+            print(f"[{task} - {method}] "
+                  f"Target class count: {target_count}/{total_count} ({ratio:.4f})")
 
             for path, pred in preds_with_paths:
                 detailed_list.append({
@@ -177,13 +190,14 @@ def main():
                     "prediction": int(pred)
                 })
 
-    # Save overall evaluation results JSON
-    with open(os.path.join(save_dir, "unlearn_eval.json"), "w", encoding="utf-8") as f:
+    # ===== Save JSON summary =====
+    json_path = os.path.join(args.save_dir, "unlearn_eval.json")
+    with open(json_path, "w", encoding="utf-8") as f:
         json.dump(overall_log, f, indent=2, ensure_ascii=False)
 
-    # Save per-image predictions to CSV
-    csv_file = os.path.join(save_dir, "unlearn_predictions.csv")
-    with open(csv_file, mode='w', newline='', encoding='utf-8') as f:
+    # ===== Save CSV (per-image) =====
+    csv_path = os.path.join(args.save_dir, "unlearn_predictions.csv")
+    with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["image_name", "task", "unlearning", "prediction"])
         for record in detailed_list:
@@ -194,8 +208,9 @@ def main():
                 record["prediction"]
             ])
 
-    print("\n[✓] Evaluation complete. Results saved.")
-    print(f"[✓] CSV saved to: {csv_file}")
+    print("\n[✓] Evaluation complete.")
+    print(f"[✓] JSON saved to: {json_path}")
+    print(f"[✓] CSV saved to: {csv_path}")
 
 if __name__ == "__main__":
     main()

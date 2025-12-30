@@ -35,75 +35,12 @@ python evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' -weigh
 ### Arguments
 - `--tasks`: The tasks to evaluate.  
   Supported:
-  - `"Nudity"` (7 classes, see `utils/name_to_id.py` for task names)
-  - `"Style"` (20 classes, see `utils/name_to_id.py` for task names)
-  - `"Object"` (10 classes, see `utils/name_to_id.py` for task names)
-- `--weight-dir`: Classifier head weights path (can be either self-trained or our pre-trained weights).
+  - `"Nudity"` (7 classes, see `utils/class_to_label.py` for task names)
+  - `"Style"` (20 classes, see `utils/class_to_label.py` for task names)
+  - `"Object"` (10 classes, see `utils/class_to_label.py` for task names)
+- `--weight-dir`: Classifier head weights path (can be your own trained weights or our pre-trained ones; our weights are under the `Weights` directory).
 - `--batch-size`: Batch size for evaluation.
 
-## Example Usage
-
-You can evaluate your unlearning results with the provided script `eval_unlearning.py`.
-
-```bash
-python eval_unlearning.py --indicator multi_multiC --concept "Nudity" --batch-size 5
-```
-
-### Arguments
-- `--concept`: The concept to evaluate.  
-  Supported:
-  - `"Nudity"`
-  - `"Style"` (129 classes, see `utils/name_to_id.py` for task names)
-  - `"Object"` (10 classes, see `utils/name_to_id.py` for task names)
-- `--indicator`: Choose from:
-  - `bi_multiC` (binary classification)
-  - `multi_multiC` (multi-class classification)
-- `--batch-size`: Batch size for evaluation.
-
-
-## Getting Started (Benchmarking, 20250606)
-
-```bash
-# Create and activate the Conda environment
-conda env create --file environment.yaml
-conda activate igmu
-
-# Run benchmarking
-# We have included some demo images related to Nudity unlearning as examples. Please refer to "dataset/Benchmarking_images_demo"
-python -W ignore benchmark.py --evaluation-aspect forgetting|fid|lpips|yolo|CSDR
-
-# evaluate fid and lpips for 
-# We have included some demo images related to Church unlearning as examples. Please refer to "dataset/Benchmarking_images_demo"
-python -W ignore benchmark.py --object True --evaluation-aspect fid|lpips
-
-```
-### NOTE
-
-By default, `/home/mrliu/miniconda3/envs/igmu/lib/python3.12/site-packages/torchmetrics/functional/multimodal/clip_score.py` returns the mean CLIP score for a batch.  
-If you wish to obtain the individual CLIP scores for all images in a batch, please comment out line 165 in `clip_score.py`:
-
-```python
-model, processor = _get_clip_model_and_processor(model_name_or_path)
-device = images.device if isinstance(images, Tensor) else images[0].device
-score, _ = _clip_score_update(images, text, model.to(device), processor)
-# score = score.mean(0) # line 165
-return torch.max(score, torch.zeros_like(score))
-```
-
-## Citation
-
-If you find this work helpful, we would greatly appreciate it if you could cite it.
-
-```bibtex
-@inproceedings{liu2025igmu,
-  title = {Rethinking Machine Unlearning in Image Generation Models},
-  author = {Liu, Renyang and Feng, Wenjie and Zhang, Tianwei and Zhou, Wei and Cheng, Xueqi and Ng, See-Kiong},
-  booktitle = {ACM Conference on Computer and Communications Security (CCS)},
-  organization = {ACM},
-  year = {2025},
-}
-
-```
 
 ### Acknowledgements
 

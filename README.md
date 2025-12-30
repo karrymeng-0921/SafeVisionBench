@@ -30,14 +30,15 @@ python models/SafeVisionClassifier.py --base-dir '/path/to/your/dataset_root' --
 ## Evaluate Guide
 You can evaluate common unlearning results with the provided script `evaluate_unlearn.py`:
 ```bash
-python evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' --model-dir '/path/to/your/Weightse_root' --save-dir '/path/to/your/save_root' --tasks 'object_church style_vangogh nsfw' --methods 'ESD FMN UCE MACE' --batch-size 32
+python evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' -weight-dir '/path/to/your/Weightse_root' --save-dir '/path/to/your/save_root' --tasks 'object_church style_vangogh nsfw' --methods 'ESD FMN UCE MACE' --batch-size 32
 ```
 ### Arguments
 - `--tasks`: The tasks to evaluate.  
   Supported:
-  - `"Nudity"`
-  - `"Style"` (129 classes, see `utils/name_to_id.py` for task names)
+  - `"Nudity"` (7 classes, see `utils/name_to_id.py` for task names)
+  - `"Style"` (20 classes, see `utils/name_to_id.py` for task names)
   - `"Object"` (10 classes, see `utils/name_to_id.py` for task names)
+- `--weight-dir`: Classifier head weights path (can be either self-trained or our pre-trained weights).
 - `--batch-size`: Batch size for evaluation.
 
 ## Example Usage

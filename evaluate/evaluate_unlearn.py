@@ -2,6 +2,7 @@ import os
 import json
 import csv
 import torch
+import argparse
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from transformers import CLIPModel, CLIPProcessor
@@ -29,7 +30,7 @@ HEADS = {
 TARGET_LABEL = {
     "object_church": "2",  # church folder name
     "style_vangogh": "22",  # vangogh folder name
-    "nsfw_nudenet": "4"          # Sexual folder name
+    "nsfw_nudenet": "4"      # Sexual folder name
 }
 
 # Dataset
@@ -60,7 +61,7 @@ def make_loader(path, processor, batch_size=32, num_workers=4):
     return DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 # Load model and heads
-def load_model_and_heads(result_dir, task_alias):
+def load_model_and_heads(weight_dir, task_alias):
     clip_model_name = "openai/clip-vit-base-patch32"
     processor = CLIPProcessor.from_pretrained(clip_model_name)
     clip_model = CLIPModel.from_pretrained(clip_model_name)
@@ -82,7 +83,7 @@ def load_model_and_heads(result_dir, task_alias):
         "style": "style_full_model.pth",
         "nsfw": "nsfw_full_model.pth"
     }
-    model_path = os.path.join(result_dir, filename_map[task_real])
+    model_path = os.path.join(weight_dir, filename_map[task_real])
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"[✗] Missing model file: {model_path}")
 
@@ -131,14 +132,14 @@ def evaluate_multiclass(model, loader, task_alias, task_real):
             total += preds.size(0)
 
     target_ratio = target_count / total if total > 0 else 0.0
-    return target_count, total, target_ratio, list(zip(all_paths, all_preds)))
+    return target_count, total, target_ratio, list(zip(all_paths, all_preds))
 
 # Main function
 def main():
     parser = argparse.ArgumentParser("Unlearning Evaluation")
     parser.add_argument("--base-dir", type=str, required=True,
                         help="Root directory containing images to evaluate")
-    parser.add_argument("--model-dir", type=str, required=True,
+    parser.add_argument("--weight-dir", type=str, required=True,
                         help="Directory containing trained classifier weights")
     parser.add_argument("--save-dir", type=str, required=True,
                         help="Directory to save evaluation results")
@@ -160,7 +161,7 @@ def main():
             continue
 
         overall_log[task] = {}
-        model, processor, task_real = load_model_and_heads(args.model_dir, task)
+        model, processor, task_real = load_model_and_heads(args.weight_dir, task)
 
         for method in args.methods:
             data_path = os.path.join(args.base_dir, task, "forget", method)

@@ -16,9 +16,16 @@ SafeVisionBench is a comprehensive evaluation framework for assessing machine un
 ## Installation Guide
 The code base is based on the `diffusers package`. To get started:
 ```bash
-git clone https://github.com/rohitgandikota/unified-concept-editing.git
-cd unified-concept-editing
-mkdir models
+git clone https://github.com/karrymeng-0921/SafeVisionBench.git
+cd SafeVisionBench
+pip install -r requirements.txt
+```
+
+## Training Guide
+After installation, follow these instructions to train the SafeVisionClassifier:
+```bash
+git clone https://github.com/karrymeng-0921/SafeVisionBench.git
+cd SafeVisionBench
 pip install -r requirements.txt
 ```
 

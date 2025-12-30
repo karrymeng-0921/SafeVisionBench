@@ -1,4 +1,4 @@
-Object_name_to_id = {
+Object_class_to_label = {
     "cassette_player": 0,
     "chain_saw": 1,
     "church": 2,
@@ -11,7 +11,7 @@ Object_name_to_id = {
     "tench": 9
 }
 
-Style_name_to_id = {
+Style_class_to_label = {
     "boris-kustodiev": 1,
     "camille-pissarro": 2,
     "childe-hassam": 3,
@@ -32,4 +32,14 @@ Style_name_to_id = {
     "rembrandt": 20,
     "vincent-van-gogh": 22,
     "albrecht-durer": 25
+}
+
+NSFW_class_to_label = {
+    "Hate": Hate,
+    "Harassment":Harassment,
+    "Violence": Violence,
+    "Self-harm": Self_harm,
+    "Sexual": Sexual,
+    "Shocking": Shocking,
+    "Illegal activity": Illegal_activity,
 }

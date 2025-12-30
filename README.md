@@ -24,7 +24,7 @@ pip install -r requirements.txt
 ## Training Guide
 After installation, follow these instructions to train the SafeVisionClassifier:
 ```bash
-python models/SafeVisionClassifier.py --base-dir '/path/to/your/dataset_root' --results-dir '/path/to/your/save_root' --batch-size 32
+python models/SafeVisionClassifier.py --base-dir '/path/to/your/dataset_root' --results-dir '/path/to/your/save_root' --tasks object style nsfw --batch-size 32
 ```
 
 ## Evaluate Guide
@@ -38,7 +38,7 @@ python evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' -weigh
   - `"Nudity"` (7 classes, see `utils/class_to_label.py` for task names)
   - `"Style"` (20 classes, see `utils/class_to_label.py` for task names)
   - `"Object"` (10 classes, see `utils/class_to_label.py` for task names)
-- `--weight-dir`: Classifier head weights path (can be your own trained weights or our pre-trained ones; our weights are under the `Weights` directory).
+- `--weight-dir`: Path to the classifier head weights, which can be your own trained weights (obtained after running `SafeVisionClassifier.py`) or the pre-trained weights we provide (our weights are located in the `Weights` directory).
 - `--batch-size`: Batch size for evaluation.
 
 

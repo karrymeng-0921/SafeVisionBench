@@ -1,0 +1,14 @@
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+transformers==4.57.1
+open-clip-torch==2.32.0
+numpy==1.26.4
+Pillow==10.0.1
+psutil==7.0.0
+tqdm==4.67.1
+matplotlib==3.6.3
+opencv-python==4.11.0.86
+pandas==1.5.1
+imageio==2.37.0
+lpips==0.1.4
+accelerate==1.8.1

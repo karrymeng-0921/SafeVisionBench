@@ -30,7 +30,7 @@ python models/SafeVisionClassifier.py --base-dir '/path/to/your/dataset_root' --
 ## Evaluate Guide
 You can evaluate common unlearning results with the provided script `evaluate_unlearn.py`:
 ```bash
-python evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' -weight-dir '/path/to/your/Weightse_root' --save-dir '/path/to/your/save_root' --tasks 'object_church style_vangogh nsfw' --methods 'ESD FMN UCE MACE' --batch-size 32
+python evaluate/evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' -weight-dir '/path/to/your/Weightse_root' --save-dir '/path/to/your/save_root' --tasks 'object_church style_vangogh nsfw' --methods 'ESD FMN UCE MACE' --batch-size 32
 ```
 ### Arguments
 - `--tasks`: The tasks to evaluate.  
@@ -41,25 +41,13 @@ python evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_root' -weigh
 - `--weight-dir`: Path to the classifier head weights, which can be your own trained weights (obtained after running `SafeVisionClassifier.py`) or the pre-trained weights we provide (our weights are located in the `Weights` directory).
 - `--batch-size`: Batch size for evaluation.
 
+## Generation Images
+To use `evaluate/generate-images.py` you would need a CSV file with columns prompt, evaluation_seed, and case_number. You can use the following example to generate images with the standard diffusion model:
+```bash
+python generateImages.py --model_name "None" --prompts_path "<path_to_prompts_csv>" --save_path "<path_to_save_images>/sd14" --base "1.4" --device "cuda:0" --guidance_scale 7.5 --image_size 512 --num_samples 1 --ddim_steps 100
+```
+You can use the following example to generate images after unlearning:
+```bash
+python generateImages.py --model_name "ConceptPrune" --prompts_path "<path_to_prompts_csv>" --save_path "<path_to_save_images>/uce" --base "1.4" --device "cuda:0" --guidance_scale 7.5 --image_size 512 --num_samples 1 --ddim_steps 100
+```
 
-### Acknowledgements
-
-We extend our gratitude to the following repositories for their contributions and resources:
-
-- [ESD](https://github.com/rohitgandikota/erasing)
-- [FMN](https://github.com/SHI-Labs/Forget-Me-Not)
-- [SPM](https://github.com/Con6924/SPM)
-- [AdvUnlearn](https://github.com/OPTML-Group/AdvUnlearn)
-- [MACE](https://github.com/shilin-lu/mace)
-- [RECE](https://github.com/CharlesGong12/RECE)
-- [DoCo](https://github.com/yongliang-wu/DoCo)
-- [Receler](https://github.com/jasper0314-huang/Receler)
-- [ConceptPrune](https://github.com/ruchikachavhan/concept-prune)
-- [UCE](https://github.com/rohitgandikota/unified-concept-editing)
-
-- [NudeNet](https://github.com/notAI-tech/NudeNet)
-- [UnlearnDiffAtk](https://github.com/OPTML-Group/Diffusion-MU-Attack)
-- [IQA-PyTorch](https://github.com/chaofengc/IQA-PyTorch)
-
-
-Their works have significantly contributed to the development of our work.

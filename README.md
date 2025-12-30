@@ -24,9 +24,14 @@ pip install -r requirements.txt
 ## Training Guide
 After installation, follow these instructions to train the SafeVisionClassifier:
 ```bash
-git clone https://github.com/karrymeng-0921/SafeVisionBench.git
-cd SafeVisionBench
-pip install -r requirements.txt
+python models/SafeVisionClassifier.py --base-dir '/path/to/your/dataset_root' --results-dir '/path/to/your/save_root' --batch-size 32
+```
+
+## Evaluate Guide
+You can evaluate common unlearning results with the provided script `evaluate_unlearn.py`:
+```bash
+python evaluate_unlearn.py --base-dir './UnlearnResults' --model-dir './Weights' --save-dir './EvalResults' --tasks 'object_church style_vangogh nsfw' --methods 'ESD FMN UCE MACE'
+
 ```
 
 ## Example Usage

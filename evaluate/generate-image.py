@@ -12,9 +12,7 @@ def generate_images(model_name, prompts_path, save_path, device='cuda:0',
                     guidance_scale=7.5, image_size=512, ddim_steps=100,
                     num_samples=10, from_case=0, till_case=1000000, base='1.4'):
 
-    # -------------------
     # Select base model
-    # -------------------
     if base == '1.4':
         model_version = "CompVis/stable-diffusion-v1-4"
     elif base == '1.5':

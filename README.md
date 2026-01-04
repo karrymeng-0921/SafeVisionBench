@@ -54,7 +54,7 @@ python generateImages.py --model_name "ConceptPrune" --prompts_path "<path_to_pr
 ## ⚠️ Data Availability Notice
 
 Due to safety and compliance considerations, this repository **does not include** the complete dataset used in the experiments.  
-Some data samples may contain unsafe or sensitive content and therefore cannot be publicly released. Sample examples are provided in the `dataset` directory.
+Some data samples may contain unsafe or sensitive content and therefore cannot be publicly released. Partial sample examples are provided in the `dataset` directory.
 
 We provide the model weights and evaluation code necessary to reproduce the experimental results.
 

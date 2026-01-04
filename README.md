@@ -14,7 +14,7 @@ SafeVisionBench is a comprehensive evaluation framework for assessing machine un
 ---
 
 ## Installation Guide
-The code base is based on the `diffusers package`. To get started:
+The code base is based on the `diffusers` package. To get started:
 ```bash
 git clone https://github.com/karrymeng-0921/SafeVisionBench.git
 cd SafeVisionBench

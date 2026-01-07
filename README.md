@@ -42,13 +42,13 @@ python evaluate/evaluate_unlearn.py --base-dir '/path/to/your/unlearn_images_roo
 - `--batch-size`: Batch size for evaluation.
 
 ## Generation Images
-To use `evaluate/generate-images.py` you would need a CSV file with columns prompt, evaluation_seed, and case_number. You can use the following example to generate images with the standard diffusion model:
+To use `evaluate/generate-images.py` you would need a CSV file with columns prompt, evaluation_seed, and case_number. You can use the following example to generate images with the standard diffusion model (e.g., SD-1.4, SD-1.5, SD-2.0 or SD-2.1).:
 ```bash
-python generateImages.py --model_name "None" --prompts_path "<path_to_prompts_csv>" --save_path "<path_to_save_images>/sd14" --base "1.4" --device "cuda:0" --guidance_scale 7.5 --image_size 512 --num_samples 1 --ddim_steps 100
+python evaluate/generate-images.py --model_name "None" --prompts_path "/path/to/your/prompts_csv" --save_path "/path/to/your/save_root" --base "1.4" --device "cuda:0" --guidance_scale 7.5 --image_size 512 --num_samples 1 --ddim_steps 100
 ```
 You can use the following example to generate images after unlearning:
 ```bash
-python generateImages.py --model_name "ConceptPrune" --prompts_path "<path_to_prompts_csv>" --save_path "<path_to_save_images>/uce" --base "1.4" --device "cuda:0" --guidance_scale 7.5 --image_size 512 --num_samples 1 --ddim_steps 100
+python evaluate/generate-images.py --model_name "ConceptPrune" --prompts_path "/path/to/your/prompts_csv" --save_path "/path/to/your/save_root" --base "1.4" --device "cuda:0" --guidance_scale 7.5 --image_size 512 --num_samples 1 --ddim_steps 100
 ```
 
 ## ⚠️ Data Availability Notice

@@ -63,19 +63,16 @@ def generate_images(model_name, prompts_path, save_path, device='cuda:0',
             pipe.unet = model.unet
         print(" SPM model loaded successfully.")
 
-    elif model_name == 'ConceptPrune':
-        concept = "Vincent van Gogh"
-        unlearn_method = "ConceptPrune"
-        ckpt_path = "<path_to_conceptprune_checkpoint.pt>"
+    elif model_name == "ConceptPrune":
+       model = SDAModel(
+                unlearn_method="ConceptPrune",
+                concept="church",
+                ckpt_path="<path_to_spm_checkpoint.pt>",
+                device=device
+            )
 
-        model = SDAModel(unlearn_method=unlearn_method, concept=concept,
-                         ckpt_path=ckpt_path, device=device)
-        model.load_DM()
-
-        if hasattr(model, 'unet'):
-            pipe.unet = model.unet
-
-        print(" ConceptPrune model loaded and neuron mask applied.")
+        pipe = model.load_DM()
+    
 
     elif model_name == 'DoCoPreG':
         concept = "church"

@@ -68,7 +68,7 @@ class SDAModel(object):
     def load_DM(self):
         model_id = "CompVis/stable-diffusion-v1-4"
         pipe = StableDiffusionPipeline.from_pretrained(
-            model_id, torch_dtype=self.data_type
+            model_id, torch_dtype=self.data_type, safety_checker=None
         ).to(self.device)
 
         self.vae = pipe.vae
@@ -158,12 +158,12 @@ class SDAModel(object):
 
         elif self.unlearn_method == "ConceptPrune":
             target_ckpt = self.ckpt_path or f"{ckpt_BASE}/<CHECKPOINT>"
-            neuron_remover = NeuronRemover(
-                path_expert_indx=target_ckpt, T=50, n_layers=16,
-                replace_fn=GEGLU, hook_module="unet"
+            neuron_remover = NeuronRemover(path_expert_indx=self.ckpt_path, T=50,n_layers=16,replace_fn=GEGLU, hook_module='unet'
             )
-            pipe = neuron_remover.observe_activation(pipe)  # noqa: F821
-            self.unet = deepcopy(pipe.unet)
+            pipe = neuron_remover.observe_activation(pipe)
+            self.unet = pipe.unet
+            self.neuron_remover = neuron_remover 
+            return pipe
 
         elif self.unlearn_method == "Receler":
             target_ckpt = self.ckpt_path or f"{ckpt_BASE}/<CHECKPOINT>"

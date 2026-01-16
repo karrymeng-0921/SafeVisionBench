@@ -1,9 +1,9 @@
-# SafeVisionBench: A Hybrid Multi-Task Benchmark and Evaluation Framework for Safety and Unlearning in Text-to-Image Models
+# UniBench: A Hybrid Multi-Task Framework for Benchmarking Text-to-Image Model Unlearning
 **WARNING: This repository contains model outputs that may be offensive in nature.**
 
 ## Introduction
 
-SafeVisionBench is a comprehensive evaluation framework for assessing machine unlearning effectiveness, safety robustness, and cross-task generalization.
+UniBench is a comprehensive evaluation framework for assessing machine unlearning effectiveness, safety robustness, and cross-task generalization.
 
 ## Features
 
@@ -16,8 +16,8 @@ SafeVisionBench is a comprehensive evaluation framework for assessing machine un
 ## Installation Guide
 The code base is based on the `diffusers` package. To get started:
 ```bash
-git clone https://github.com/karrymeng-0921/SafeVisionBench.git
-cd SafeVisionBench
+git clone https://github.com/karrymeng-0921/UniBench.git
+cd UniBench
 pip install -r requirements.txt
 ```
 
